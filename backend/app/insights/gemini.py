@@ -103,11 +103,12 @@ def get_ai_insights(req: CalculateRequest, settings: Settings) -> InsightsRespon
                 system_instruction=SYSTEM_PROMPT,
                 temperature=0.3,
                 max_output_tokens=2048,
+                response_mime_type="application/json",
             ),
         )
 
         raw = response.text.strip()
-        # Strip markdown fences Gemini sometimes adds despite instructions
+        # Strip any stray markdown fences before parsing
         if raw.startswith("```"):
             raw = raw.split("```", 2)[1]
             if raw.startswith("json"):
