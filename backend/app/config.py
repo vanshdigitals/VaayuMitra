@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     # GCP project settings
     gcp_project: str = "vaayumitra"
     location: str = "asia-south1"
-    gemini_model: str = "gemini-1.5-flash"
+    gemini_model: str = "gemini-2.5-flash"
 
     # Feature flags — set these to false in tests so no GCP credentials are needed
     use_gemini: bool = True
