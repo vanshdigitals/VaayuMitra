@@ -60,16 +60,23 @@ def chat_with_gemini(req: CalculateRequest, messages: list[dict[str, str]], sett
             for m in messages
         ]
 
-        response = client.models.generate_content(
-            model=settings.gemini_model,
-            contents=formatted,
-            config=types.GenerateContentConfig(
-                system_instruction=full_system,
-                temperature=0.7,
-            ),
-        )
-        return response.text
+        cfg = types.GenerateContentConfig(system_instruction=full_system, temperature=0.7)
+
+        # Retry once on transient 503 before giving up
+        for attempt in range(2):
+            try:
+                response = client.models.generate_content(
+                    model=settings.gemini_model,
+                    contents=formatted,
+                    config=cfg,
+                )
+                return response.text
+            except Exception as inner:
+                if attempt == 0 and "503" in str(inner):
+                    logger.warning("Gemini 503 on attempt 1, retrying: %s", inner)
+                    continue
+                raise
 
     except Exception as exc:
         logger.warning("Gemini chat error: %s", exc)
-        return "Oops! I encountered an error connecting to my AI engine. Please try again in a moment."
+        return "VaayuMitra AI is temporarily unavailable due to high demand. Your rule-based insights on the Insights page are always available!"

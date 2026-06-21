@@ -100,12 +100,18 @@ def get_ai_insights(req: CalculateRequest, settings: Settings) -> InsightsRespon
             config=types.GenerateContentConfig(
                 system_instruction=SYSTEM_PROMPT,
                 temperature=0.3,
-                max_output_tokens=800,
-                response_mime_type="application/json",
+                max_output_tokens=2048,
             ),
         )
 
-        parsed = json.loads(response.text)
+        raw = response.text.strip()
+        # Strip markdown fences Gemini sometimes adds despite instructions
+        if raw.startswith("```"):
+            raw = raw.split("```", 2)[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
+            raw = raw.rsplit("```", 1)[0].strip()
+        parsed = json.loads(raw)
         recs = [Recommendation(**r) for r in parsed.get("recommendations", [])[:3]]
         return InsightsResponse(
             recommendations=recs,
