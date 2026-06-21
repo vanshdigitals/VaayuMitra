@@ -92,7 +92,8 @@ def get_ai_insights(req: CalculateRequest, settings: Settings) -> InsightsRespon
             client = genai.Client(api_key=api_key)
         else:
             # Use Vertex AI ADC — works in Cloud Run without any API key
-            client = genai.Client(vertexai=True, project=settings.gcp_project, location=settings.location)
+            # Vertex AI Gemini models are only available in us-central1
+            client = genai.Client(vertexai=True, project=settings.gcp_project, location="us-central1")
         user_msg = _build_prompt(req, result)
 
         response = client.models.generate_content(
