@@ -7,7 +7,7 @@ const TABS = [
   { href: '/dashboard', Icon: LayoutDashboard, label: 'Home',     id: 'dashboard' },
   { href: '/track',     Icon: Activity,         label: 'Track',    id: 'track'     },
   { href: '/insights',  Icon: Lightbulb,         label: 'Insights', id: 'insights'  },
-  { href: '/dashboard', Icon: Target,            label: 'Goals',    id: 'goals'     },
+  { href: '/goals',     Icon: Target,            label: 'Goals',    id: 'goals'     },
   { href: '/chat',      Icon: MessageSquare,     label: 'Chat',     id: 'chat'      },
 ];
 

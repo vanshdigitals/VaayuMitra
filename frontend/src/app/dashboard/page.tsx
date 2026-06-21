@@ -105,7 +105,7 @@ export default function DashboardPage() {
 
       {/* ── Header ────────────────────────────────────────── */}
       <AppHeader showLogo rightSlot={
-        <Link href="/onboarding" aria-label="Settings" style={{ width: 36, height: 36, borderRadius: 8, background: '#1C1A14', border: '1px solid rgba(242,239,227,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}>
+        <Link href="/settings" aria-label="Settings" style={{ width: 36, height: 36, borderRadius: 8, background: '#1C1A14', border: '1px solid rgba(242,239,227,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}>
           <Settings size={16} strokeWidth={1.5} color="#A09880" />
         </Link>
       } />

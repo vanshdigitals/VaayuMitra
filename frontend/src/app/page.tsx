@@ -41,6 +41,10 @@ export default function LandingPage() {
 
   return (
     <div style={{ minHeight: '100dvh', background: '#111009', color: '#F2EFE3', fontFamily: S }}>
+      <style>{`
+        .cta-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+        .feature-card:hover { border-color: rgba(212,168,83,0.20) !important; transform: translateY(-2px); }
+      `}</style>
 
       {/* ── Nav ─────────────────────────────────────────────────── */}
       <nav role="navigation" aria-label="Main navigation" style={{
@@ -100,9 +104,7 @@ export default function LandingPage() {
           </div>
 
           {/* CTA */}
-          <Link id="hero-cta" href="/onboarding" aria-label="Calculate my carbon footprint, free, no signup required" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', maxWidth: 380, padding: '18px 32px', background: '#D4A853', color: '#111009', borderRadius: 10, fontFamily: S, fontWeight: 700, fontSize: 16, textDecoration: 'none', letterSpacing: '-0.01em', transition: 'opacity 150ms, transform 150ms' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '.88'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '1'; (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; }}>
+          <Link id="hero-cta" href="/onboarding" aria-label="Calculate my carbon footprint, free, no signup required" className="cta-btn" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', maxWidth: 380, padding: '18px 32px', background: '#D4A853', color: '#111009', borderRadius: 10, fontFamily: S, fontWeight: 700, fontSize: 16, textDecoration: 'none', letterSpacing: '-0.01em', transition: 'opacity 150ms, transform 150ms' }}>
             Calculate My Footprint
             <ArrowRight size={18} strokeWidth={2} />
           </Link>
@@ -137,9 +139,7 @@ export default function LandingPage() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(272px, 1fr))', gap: 14 }}>
             {features.map(({ Icon, title, desc }) => (
-              <div key={title} style={{ padding: '28px 24px', background: '#1C1A14', border: '1px solid rgba(242,239,227,0.08)', borderRadius: 16, display: 'flex', flexDirection: 'column', gap: 14, transition: 'border-color 200ms, transform 200ms' }}
-                onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = 'rgba(212,168,83,0.20)'; el.style.transform = 'translateY(-2px)'; }}
-                onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = 'rgba(242,239,227,0.08)'; el.style.transform = 'translateY(0)'; }}>
+              <div key={title} className="feature-card" style={{ padding: '28px 24px', background: '#1C1A14', border: '1px solid rgba(242,239,227,0.08)', borderRadius: 16, display: 'flex', flexDirection: 'column', gap: 14, transition: 'border-color 200ms, transform 200ms' }}>
                 <div style={{ width: 40, height: 40, background: 'rgba(212,168,83,0.10)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Icon size={20} strokeWidth={1.5} color="#D4A853" />
                 </div>
@@ -178,9 +178,7 @@ export default function LandingPage() {
           </div>
 
           <div style={{ marginTop: 56, textAlign: 'center' }}>
-            <Link id="bottom-cta" href="/onboarding" aria-label="Start now, calculate your carbon footprint for free" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', maxWidth: 380, padding: '18px 32px', background: '#D4A853', color: '#111009', borderRadius: 10, fontFamily: S, fontWeight: 700, fontSize: 16, textDecoration: 'none', letterSpacing: '-0.01em', transition: 'opacity 150ms, transform 150ms' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '.88'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '1'; (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; }}>
+            <Link id="bottom-cta" href="/onboarding" aria-label="Start now, calculate your carbon footprint for free" className="cta-btn" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', maxWidth: 380, padding: '18px 32px', background: '#D4A853', color: '#111009', borderRadius: 10, fontFamily: S, fontWeight: 700, fontSize: 16, textDecoration: 'none', letterSpacing: '-0.01em', transition: 'opacity 150ms, transform 150ms' }}>
               Start Now — It&apos;s Free
               <ArrowRight size={18} strokeWidth={2} />
             </Link>
