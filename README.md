@@ -1,6 +1,6 @@
 # VaayuMitra — वायुमित्र
 
-### India's AI-Powered Carbon Footprint Companion
+## India's AI-Powered Carbon Footprint Companion
 
 > **"Friend of the Atmosphere"** — Built for India. Powered by Gemini. Deployed on Google Cloud Run.
 
@@ -8,7 +8,7 @@
 [![Tests](https://img.shields.io/badge/Tests-40%20passing-2ea44f?style=for-the-badge)](backend/tests)
 [![PromptWars](https://img.shields.io/badge/PromptWars-Challenge%203-orange?style=for-the-badge)](https://promptwars.in)
 
-**Live:** https://vaayumitra-216175773868.asia-south1.run.app
+**Live:** <https://vaayumitra-216175773868.asia-south1.run.app>
 
 ---
 
@@ -35,7 +35,7 @@ two minutes → receive AI recommendations calibrated for Indian life → track 
 advisor that understands Hinglish.
 
 | Feature | Description |
-|---------|-------------|
+| --------- | ------------- |
 | **Carbon Calculator** | Accurate annual footprint across electricity, LPG, transport, and diet — deterministic, CEA v21.0 sourced |
 | **Dashboard** | Hero carbon score compared against the India average (1.84 t/yr), not Western benchmarks |
 | **AI Insights** | Personalized, quantified recommendations ranked from your *actual* emission breakdown |
@@ -50,7 +50,7 @@ advisor that understands Hinglish.
 A **single Cloud Run container** serves both the API and the compiled frontend from the same origin —
 no CORS, one deploy, one URL.
 
-```
+```text
 ┌──────────────────────────────────────────────────────────┐
 │  Next.js 14 (App Router, TypeScript) — static export     │
 │  Typed API client (lib/api.ts ← lib/types.ts)            │
@@ -74,6 +74,7 @@ no CORS, one deploy, one URL.
 ```
 
 ### Engineering patterns
+
 - **Application factory** (`create_app()`) so tests get fresh settings + repository per run
 - **Protocol-based repository pattern** — `EntryRepository` → `FirestoreEntryRepository` | `InMemoryEntryRepository`, selected by feature flag
 - **Dependency injection** via FastAPI `Depends()` + `@lru_cache` providers in `deps.py`
@@ -88,7 +89,7 @@ no CORS, one deploy, one URL.
 Every constant cites its primary source — these are research data, not estimates.
 
 | Category | Factor | Value | Source |
-|----------|--------|-------|--------|
+| ---------- | -------- | ------- | -------- |
 | Electricity | Grid emission factor | **0.71 kgCO₂/kWh** | CEA CO₂ Baseline Database v21.0, FY2024-25 |
 | Car (petrol, mid-size) | Per km | 0.140 kgCO₂/km | India GHG Program v1.0 (WRI/TERI/CII, 2015) |
 | 2-Wheeler (petrol) | Per km | 0.040 kgCO₂/km | India GHG Program v1.0 |
@@ -108,7 +109,7 @@ See [`backend/app/emission_factors.py`](backend/app/emission_factors.py) for the
 
 Gemini is strictly an **insight and conversation layer** — never a calculator.
 
-```
+```text
 calculator.py (deterministic) → "how much CO₂?"
 Gemini                        → "what should I do about it?"
 ```
@@ -122,7 +123,7 @@ breakdown — and the demo never breaks.
 ## Tech Stack
 
 | Layer | Technology |
-|-------|-----------|
+| ------- | ----------- |
 | Frontend | Next.js 14 (App Router), TypeScript, Tailwind CSS, static export |
 | Backend | FastAPI (Python 3.11), Pydantic, pydantic-settings |
 | AI | Google Gemini (`google-genai` SDK, `gemini-2.5-flash`) |
@@ -135,7 +136,7 @@ breakdown — and the demo never breaks.
 
 ## Folder Structure
 
-```
+```text
 VaayuMitra/
 ├── backend/
 │   ├── app/
@@ -165,6 +166,7 @@ VaayuMitra/
 ## Local Development
 
 ### Prerequisites
+
 - Node.js 20+ · Python 3.11+ · (optional) Docker, gcloud CLI
 
 ### Backend
@@ -192,7 +194,7 @@ npm run test                      # Vitest
 ### Environment Variables (backend)
 
 | Variable | Default | Purpose |
-|----------|---------|---------|
+| ---------- | --------- | --------- |
 | `USE_GEMINI` | `true` | Toggle Gemini; `false` serves rule-based insights |
 | `USE_FIRESTORE` | `true` | Toggle Firestore; `false` uses in-memory store |
 | `GEMINI_API_KEY` | `""` | Gemini API key (required when `USE_GEMINI=true`) |
@@ -235,7 +237,7 @@ which FastAPI serves for all non-API routes.
 ## Data Sources
 
 | Source | Powers |
-|--------|--------|
+| -------- | -------- |
 | CEA CO₂ Baseline Database v21.0 (FY2024-25) | Electricity grid factor (0.71 kgCO₂/kWh) |
 | India GHG Program v1.0 — WRI India / TERI / CII (2015) | Transport factors |
 | Pathak H. et al. (2010), ICAR-IARI | Diet factors |
