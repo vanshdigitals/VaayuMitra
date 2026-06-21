@@ -1,11 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import { calculateFootprint, saveEntry } from '@/lib/api';
+import { getDeviceId } from '@/lib/deviceId';
 import { NavTabBar, AppHeader } from '@/components/ui/Navigation';
 import {
   Bike, Car, Train, Bus, PersonStanding, Zap,
-  Leaf, Flame, TrendingDown, Plus,
+  Leaf, Flame, TrendingDown, Plus, CheckCircle2,
 } from 'lucide-react';
+import type { CalculateRequest, CommuteModeType } from '@/lib/types';
 
 /* ─── Constants ─────────────────────────────────────────────────── */
 const TRANSPORT_MODES = [
@@ -49,6 +52,8 @@ export default function TrackPage() {
   const [foodSelected,    setFoodSelected]    = useState('thali');
   const [electricityBill, setElectricityBill] = useState('');
   const [lpg,             setLpg]             = useState(1);
+  const [saving,          setSaving]          = useState(false);
+  const [success,         setSuccess]         = useState<string | null>(null);
   const [error,           setError]           = useState<string | null>(null);
 
   const S = "'Cabinet Grotesk', 'DM Sans', system-ui, sans-serif";
@@ -61,6 +66,29 @@ export default function TrackPage() {
   const kwh           = electricityBill ? (parseFloat(electricityBill) / 6.5).toFixed(0) : null;
   const elecCo2       = kwh ? (parseFloat(kwh) * 0.71).toFixed(1) : null;
   const activeTab     = TAB_META.find(t => t.id === tab)!;
+
+  const baseProfile = (): CalculateRequest => {
+    try { return JSON.parse(localStorage.getItem('vaayumitra_profile') ?? '{}') as CalculateRequest; }
+    catch { return { city: 'India' }; }
+  };
+
+  const handleSave = async (overrides: Partial<CalculateRequest>, label: string) => {
+    setSaving(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const base = baseProfile();
+      const profile: CalculateRequest = { ...base, city: base.city || 'India', ...overrides };
+      const result = await calculateFootprint(profile);
+      await saveEntry({ device_id: getDeviceId(), profile, result });
+      sessionStorage.removeItem('vaayumitra_insights_cache');
+      setSuccess(label);
+    } catch {
+      setError('Could not save entry — please try again');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const inputStyle: React.CSSProperties = {
     background: '#1F1D16', border: '1px solid rgba(242,239,227,0.10)',
@@ -84,8 +112,15 @@ export default function TrackPage() {
       />
 
       <div style={{ maxWidth: 480, margin: '0 auto' }}>
+        {success && (
+          <div role="status" aria-live="polite" style={{ background: 'rgba(91,158,111,0.10)', border: '1px solid rgba(91,158,111,0.25)', borderRadius: 12, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 8, margin: '16px 16px 0 16px' }}>
+            <CheckCircle2 size={15} strokeWidth={2} color="#5B9E6F" />
+            <span style={{ fontSize: 13, color: '#5B9E6F', flex: 1 }}>{success}</span>
+            <button onClick={() => setSuccess(null)} style={{ background: 'none', border: 'none', color: '#5B9E6F', cursor: 'pointer' }}>✕</button>
+          </div>
+        )}
         {error && (
-          <div style={{ background: 'rgba(209,90,74,0.10)', border: '1px solid rgba(209,90,74,0.25)', borderRadius: 12, padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '16px 16px 0 16px' }}>
+          <div role="alert" style={{ background: 'rgba(209,90,74,0.10)', border: '1px solid rgba(209,90,74,0.25)', borderRadius: 12, padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '16px 16px 0 16px' }}>
             <span style={{ fontSize: 13, color: '#D15A4A' }}>{error}</span>
             <button onClick={() => setError(null)} style={{ background: 'none', border: 'none', color: '#D15A4A', cursor: 'pointer' }}>✕</button>
           </div>
@@ -155,9 +190,14 @@ export default function TrackPage() {
                 </div>
               </div>
 
-              <button onClick={() => setError('Entry logged!')} aria-label="Add transport entry" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 15, borderRadius: 8, background: '#5A9ED1', color: '#111009', fontWeight: 700, fontSize: 15, border: 'none', cursor: 'pointer', fontFamily: S }}>
+              <button
+                onClick={() => handleSave({ commute_mode: mode as CommuteModeType, daily_commute_km: parseFloat(km) || 0 }, `Transport logged — ${liveKg} kg CO₂`)}
+                disabled={saving || !km}
+                aria-label="Add transport entry"
+                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 15, borderRadius: 8, background: saving ? 'rgba(90,158,209,0.4)' : '#5A9ED1', color: '#111009', fontWeight: 700, fontSize: 15, border: 'none', cursor: saving || !km ? 'not-allowed' : 'pointer', fontFamily: S, opacity: !km ? 0.5 : 1 }}
+              >
                 <Plus size={16} strokeWidth={2.5} />
-                Add Transport Entry
+                {saving ? 'Saving…' : 'Add Transport Entry'}
               </button>
             </section>
           )}
@@ -203,9 +243,14 @@ export default function TrackPage() {
                 )}
               </div>
 
-              <button onClick={() => setError('Meal logged!')} aria-label="Add meal entry" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 15, borderRadius: 8, background: '#7BC47A', color: '#111009', fontWeight: 700, fontSize: 15, border: 'none', cursor: 'pointer', fontFamily: S }}>
+              <button
+                onClick={() => handleSave({ diet_type: selectedFood?.veg ? 'veg' : 'non_veg' }, `Meal logged — ${selectedFood?.kg} kg CO₂`)}
+                disabled={saving}
+                aria-label="Add meal entry"
+                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 15, borderRadius: 8, background: saving ? 'rgba(123,196,122,0.4)' : '#7BC47A', color: '#111009', fontWeight: 700, fontSize: 15, border: 'none', cursor: saving ? 'not-allowed' : 'pointer', fontFamily: S }}
+              >
                 <Plus size={16} strokeWidth={2.5} />
-                Add Meal Entry
+                {saving ? 'Saving…' : 'Add Meal Entry'}
               </button>
             </section>
           )}
@@ -256,9 +301,14 @@ export default function TrackPage() {
                 </p>
               </div>
 
-              <button onClick={() => setError('Energy updated!')} aria-label="Update monthly energy" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 15, borderRadius: 8, background: '#D4A853', color: '#111009', fontWeight: 700, fontSize: 15, border: 'none', cursor: 'pointer', fontFamily: S }}>
+              <button
+                onClick={() => handleSave({ monthly_electricity_bill_inr: parseFloat(electricityBill) || 0, lpg_cylinders_per_month: lpg }, `Energy logged — ${elecCo2 ?? '0'} kg CO₂ (electricity)`)}
+                disabled={saving}
+                aria-label="Update monthly energy"
+                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 15, borderRadius: 8, background: saving ? 'rgba(212,168,83,0.4)' : '#D4A853', color: '#111009', fontWeight: 700, fontSize: 15, border: 'none', cursor: saving ? 'not-allowed' : 'pointer', fontFamily: S }}
+              >
                 <Plus size={16} strokeWidth={2.5} />
-                Update Monthly Energy
+                {saving ? 'Saving…' : 'Update Monthly Energy'}
               </button>
             </section>
           )}

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { calculateFootprint } from '@/lib/api';
 import { getDeviceId } from '@/lib/deviceId';
+import type { CommuteModeType, DietType } from '@/lib/types';
 import { CarbonRing } from '@/components/ui/CarbonRing';
 import {
   Bike, Car, Train, Bus, PersonStanding, Zap,
@@ -74,9 +75,9 @@ export default function OnboardingPage() {
   const [householdSize, setHouseholdSize] = useState(2);
   const [electricityBill, setElectricityBill] = useState('');
   const [lpg, setLpg]                 = useState(1);
-  const [commuteMode, setCommuteMode] = useState('2_wheeler_petrol');
+  const [commuteMode, setCommuteMode] = useState<CommuteModeType>('2_wheeler_petrol');
   const [dailyKm, setDailyKm]         = useState('');
-  const [diet, setDiet]               = useState('veg');
+  const [diet, setDiet]               = useState<DietType>('veg');
   const [goalPct, setGoalPct]         = useState(10);
 
   const TOTAL_STEPS = 5;
@@ -266,7 +267,7 @@ export default function OnboardingPage() {
                 {COMMUTE_MODES.map(({ id, Icon, label, factor }) => {
                   const active = commuteMode === id;
                   return (
-                    <button key={id} onClick={() => setCommuteMode(id)} aria-pressed={active} aria-label={`${label}: ${factor}`} style={{ padding: '16px 8px', borderRadius: 12, background: active ? 'rgba(90,158,209,0.12)' : '#1C1A14', border: `1px solid ${active ? 'rgba(90,158,209,0.50)' : 'rgba(242,239,227,0.08)'}`, color: active ? '#5A9ED1' : '#F2EFE3', cursor: 'pointer', textAlign: 'center', transition: 'all 150ms', fontFamily: S }}>
+                    <button key={id} onClick={() => setCommuteMode(id as CommuteModeType)} aria-pressed={active} aria-label={`${label}: ${factor}`} style={{ padding: '16px 8px', borderRadius: 12, background: active ? 'rgba(90,158,209,0.12)' : '#1C1A14', border: `1px solid ${active ? 'rgba(90,158,209,0.50)' : 'rgba(242,239,227,0.08)'}`, color: active ? '#5A9ED1' : '#F2EFE3', cursor: 'pointer', textAlign: 'center', transition: 'all 150ms', fontFamily: S }}>
                       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
                         <Icon size={22} strokeWidth={active ? 2 : 1.5} />
                       </div>
@@ -303,7 +304,7 @@ export default function OnboardingPage() {
                 {DIET_OPTIONS.map(d => {
                   const active = diet === d.id;
                   return (
-                    <button key={d.id} onClick={() => setDiet(d.id)} aria-pressed={active} style={{ padding: 16, borderRadius: 12, background: active ? 'rgba(123,196,122,0.08)' : '#1C1A14', border: `1px solid ${active ? 'rgba(123,196,122,0.45)' : 'rgba(242,239,227,0.08)'}`, cursor: 'pointer', textAlign: 'left', transition: 'all 150ms', fontFamily: S }}>
+                    <button key={d.id} onClick={() => setDiet(d.id as DietType)} aria-pressed={active} style={{ padding: 16, borderRadius: 12, background: active ? 'rgba(123,196,122,0.08)' : '#1C1A14', border: `1px solid ${active ? 'rgba(123,196,122,0.45)' : 'rgba(242,239,227,0.08)'}`, cursor: 'pointer', textAlign: 'left', transition: 'all 150ms', fontFamily: S }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         {/* Radio dot */}
                         <div style={{ width: 18, height: 18, borderRadius: '50%', border: `2px solid ${active ? '#7BC47A' : 'rgba(242,239,227,0.28)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>

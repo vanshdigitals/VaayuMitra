@@ -10,15 +10,14 @@ import {
   Bot, Settings, Bike, Zap, Leaf, Flame,
   TrendingDown, Activity, CheckCircle2, ChevronRight,
 } from 'lucide-react';
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
+import type { CalculateResponse, FootprintBreakdown, InsightsResponse } from '@/lib/types';
 
 /* ─── Meta ───────────────────────────────────────────────────────── */
-const CATEGORY_META = [
-  { key: 'transport_kg', label: 'Transport', Icon: Bike,   color: '#5A9ED1' },
-  { key: 'electricity_kg', label: 'Energy',  Icon: Zap,    color: '#D4A853' },
-  { key: 'diet_kg',      label: 'Food',      Icon: Leaf,   color: '#7BC47A' },
-  { key: 'lpg_kg',       label: 'LPG',       Icon: Flame,  color: '#E08645' },
+const CATEGORY_META: { key: keyof FootprintBreakdown; label: string; Icon: React.ElementType; color: string }[] = [
+  { key: 'transport_kg',   label: 'Transport', Icon: Bike,  color: '#5A9ED1' },
+  { key: 'electricity_kg', label: 'Energy',    Icon: Zap,   color: '#D4A853' },
+  { key: 'diet_kg',        label: 'Food',      Icon: Leaf,  color: '#7BC47A' },
+  { key: 'lpg_kg',         label: 'LPG',       Icon: Flame, color: '#E08645' },
 ];
 
 const QUICK_CHIPS = [
@@ -28,23 +27,10 @@ const QUICK_CHIPS = [
   { Icon: Activity, label: 'Travel'  },
 ];
 
-/* ─── Types ──────────────────────────────────────────────────────── */
-interface Footprint {
-  annual_total_tco2e: number;
-  annual_total_kgco2e: number;
-  breakdown: Record<string, number>;
-  is_below_paris_target: boolean;
-  score_level: string;
-  india_average_t?: number;
-  paris_target_t?: number;
-}
-interface Recommendation { title: string; description: string; category: string; monthly_saving_kg: number; difficulty: string; source: string; }
-interface InsightResponse { recommendations: Recommendation[]; source: string; }
-
 /* ─── Page ───────────────────────────────────────────────────────── */
 export default function DashboardPage() {
-  const [footprint, setFootprint]       = useState<Footprint | null>(null);
-  const [insight, setInsight]           = useState<InsightResponse | null>(null);
+  const [footprint, setFootprint]       = useState<CalculateResponse | null>(null);
+  const [insight, setInsight]           = useState<InsightsResponse | null>(null);
   const [insightLoading, setInsightLoading] = useState(false);
   const [greeting, setGreeting]         = useState('');
 
@@ -57,24 +43,22 @@ export default function DashboardPage() {
     setGreeting(h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening');
 
     const stored = localStorage.getItem('vaayumitra_footprint');
-    const fp: Footprint = stored ? JSON.parse(stored) : DEMO_FOOTPRINT;
+    const fp = (stored ? JSON.parse(stored) : DEMO_FOOTPRINT) as CalculateResponse;
     setFootprint(fp);
   }, []);
 
   useEffect(() => {
     if (!footprint) return;
+    // Serve from sessionStorage if insights were already fetched this session
+    try {
+      const cached = sessionStorage.getItem('vaayumitra_insights_cache');
+      if (cached) { setInsight(JSON.parse(cached) as InsightsResponse); return; }
+    } catch { /* ignore */ }
     setInsightLoading(true);
     const profile = JSON.parse(localStorage.getItem('vaayumitra_profile') ?? '{}');
-    getInsights({ ...profile, device_id: localStorage.getItem('vaayumitra_device_id') ?? 'demo-id-001' })
-      .then(d => setInsight(d))
-      .catch(() => setInsight({
-        recommendations: [{
-          title: 'Switch to Metro 2 days/week',
-          description: 'Your transport emits the most. Taking Metro on 2 days/week saves ~4.2 kg CO₂/month — equivalent to 2 Mumbai-Pune auto trips.',
-          category: 'transport', monthly_saving_kg: 4.2, difficulty: 'easy', source: 'rules',
-        }],
-        source: 'rules',
-      }))
+    getInsights(profile)
+      .then(d => { setInsight(d); sessionStorage.setItem('vaayumitra_insights_cache', JSON.stringify(d)); })
+      .catch(() => {})
       .finally(() => setInsightLoading(false));
   }, [footprint]);
 
@@ -220,7 +204,7 @@ export default function DashboardPage() {
           <h2 id="breakdown-h" style={{ fontSize: 11, color: '#6B6454', letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 10 }}>Category Breakdown</h2>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             {CATEGORY_META.map(({ key, label, Icon, color }) => {
-              const kg  = breakdown[key] ?? 0;
+              const kg  = breakdown[key];
               const pct = totalKg > 0 ? Math.round((kg / totalKg) * 100) : 0;
               return (
                 <div key={key} role="img" aria-label={`${label}: ${kg.toFixed(0)} kg CO₂/yr, ${pct}% of total`} style={{ padding: '16px 14px', background: '#1C1A14', border: '1px solid rgba(242,239,227,0.08)', borderRadius: 14 }}>

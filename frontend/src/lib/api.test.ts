@@ -28,11 +28,11 @@ describe('API Helpers', () => {
 
   beforeEach(() => {
     mockFetch = vi.fn();
-    global.fetch = mockFetch;
+    vi.stubGlobal('fetch', mockFetch);
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it('healthCheck calls /api/health', async () => {
@@ -40,7 +40,7 @@ describe('API Helpers', () => {
     mockFetch.mockResolvedValue({ ok: true, json: async () => mockResponse });
 
     const result = await healthCheck();
-    expect(global.fetch).toHaveBeenCalledWith('/api/health');
+    expect(mockFetch).toHaveBeenCalledWith('/api/health');
     expect(result).toEqual(mockResponse);
   });
 
@@ -49,7 +49,7 @@ describe('API Helpers', () => {
     mockFetch.mockResolvedValue({ ok: true, json: async () => mockResponse });
 
     const result = await calculateFootprint(MOCK_PROFILE);
-    expect(global.fetch).toHaveBeenCalledWith('/api/calculate', {
+    expect(mockFetch).toHaveBeenCalledWith('/api/calculate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(MOCK_PROFILE),
@@ -68,7 +68,7 @@ describe('API Helpers', () => {
 
     await saveEntry({ device_id: 'vm-test', profile: MOCK_PROFILE, result: MOCK_RESULT });
 
-    expect(global.fetch).toHaveBeenCalledWith(
+    expect(mockFetch).toHaveBeenCalledWith(
       '/api/entries',
       expect.objectContaining({ method: 'POST' }),
     );
@@ -78,6 +78,6 @@ describe('API Helpers', () => {
     mockFetch.mockResolvedValue({ ok: true, json: async () => [] });
 
     await listEntries('vm-device-001');
-    expect(global.fetch).toHaveBeenCalledWith('/api/entries/vm-device-001');
+    expect(mockFetch).toHaveBeenCalledWith('/api/entries/vm-device-001');
   });
 });

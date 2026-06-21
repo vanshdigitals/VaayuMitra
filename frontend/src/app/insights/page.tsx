@@ -7,15 +7,8 @@ import {
   Bike, Zap, Leaf, ShoppingBag,
   Bot, BarChart2, TrendingDown, CheckCircle2,
 } from 'lucide-react';
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
-
+import type { CalculateResponse, InsightsResponse } from '@/lib/types';
 import { DEMO_INSIGHTS } from '@/lib/demo';
-
-/* ─── Types ──────────────────────────────────────────────────────── */
-interface Recommendation { title: string; description: string; category: string; monthly_saving_kg: number; difficulty: string; source: string; source_citation?: string; }
-interface InsightResponse { recommendations: Recommendation[]; source: string; }
-interface Footprint { annual_total_tco2e: number; is_below_paris_target: boolean; }
 
 /* ─── Helpers ───────────────────────────────────────────────────── */
 const CAT_ICON: Record<string, React.ElementType> = { transport: Bike, energy: Zap, food: Leaf, shopping: ShoppingBag };
@@ -31,8 +24,8 @@ const BENCHMARKS = [
 
 /* ─── Page ───────────────────────────────────────────────────────── */
 export default function InsightsPage() {
-  const [insights,  setInsights]  = useState<InsightResponse | null>(null);
-  const [footprint, setFootprint] = useState<Footprint | null>(null);
+  const [insights,  setInsights]  = useState<InsightsResponse | null>(null);
+  const [footprint, setFootprint] = useState<CalculateResponse | null>(null);
   const [loading,   setLoading]   = useState(true);
   const [error,     setError]     = useState<string | null>(null);
 
@@ -41,13 +34,19 @@ export default function InsightsPage() {
   const M = "'JetBrains Mono', monospace";
 
   useEffect(() => {
-    const fp      = JSON.parse(localStorage.getItem('vaayumitra_footprint') ?? 'null');
+    const fp      = JSON.parse(localStorage.getItem('vaayumitra_footprint') ?? 'null') as CalculateResponse | null;
     const profile = JSON.parse(localStorage.getItem('vaayumitra_profile') ?? '{}');
     setFootprint(fp);
 
-    getInsights({ ...profile, device_id: localStorage.getItem('vaayumitra_device_id') ?? 'demo-id-001' })
-      .then(d => setInsights(d))
-      .catch(() => setInsights(DEMO_INSIGHTS))
+    // Serve from sessionStorage cache first (populated by Dashboard) to avoid double AI calls
+    try {
+      const cached = sessionStorage.getItem('vaayumitra_insights_cache');
+      if (cached) { setInsights(JSON.parse(cached) as InsightsResponse); setLoading(false); return; }
+    } catch { /* ignore */ }
+
+    getInsights(profile)
+      .then(d => { setInsights(d); sessionStorage.setItem('vaayumitra_insights_cache', JSON.stringify(d)); })
+      .catch(() => setInsights(DEMO_INSIGHTS as InsightsResponse))
       .finally(() => setLoading(false));
   }, []);
 
