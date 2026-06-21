@@ -42,10 +42,10 @@ export default function ChatPage() {
       // Set a default city if empty so the backend validator doesn't fail
       if (!profile.city) profile.city = 'India';
 
-      const data = await sendChat({
-        profile: profile,
-        messages: newMessages.map(m => ({ role: m.role, content: m.content })),
-      });
+      const data = await sendChat(
+        profile,
+        newMessages.map(m => ({ role: m.role, content: m.content })),
+      );
 
       setMessages(prev => [...prev, { role: 'model', content: data.text }]);
     } catch (error) {
