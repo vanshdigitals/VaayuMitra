@@ -49,7 +49,12 @@ def chat_with_gemini(req: CalculateRequest, messages: list[dict[str, str]], sett
         from google import genai
         from google.genai import types
 
-        client = genai.Client(api_key=settings.gemini_api_key)
+        api_key = settings.gemini_api_key
+        if api_key:
+            client = genai.Client(api_key=api_key)
+        else:
+            # Use Vertex AI ADC — works in Cloud Run without any API key
+            client = genai.Client(vertexai=True, project=settings.gcp_project, location=settings.location)
         full_system = f"{CHAT_SYSTEM_PROMPT}\n\nUSER PROFILE CONTEXT:\n{_build_context(req)}"
 
         formatted = [

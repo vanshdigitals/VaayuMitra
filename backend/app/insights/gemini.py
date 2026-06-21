@@ -83,15 +83,16 @@ def get_ai_insights(req: CalculateRequest, settings: Settings) -> InsightsRespon
     if not settings.use_gemini:
         return generate_rule_based_insights(req, result)
 
-    api_key = settings.gemini_api_key
-    if not api_key:
-        return generate_rule_based_insights(req, result)
-
     try:
         from google import genai
         from google.genai import types
 
-        client = genai.Client(api_key=api_key)
+        api_key = settings.gemini_api_key
+        if api_key:
+            client = genai.Client(api_key=api_key)
+        else:
+            # Use Vertex AI ADC — works in Cloud Run without any API key
+            client = genai.Client(vertexai=True, project=settings.gcp_project, location=settings.location)
         user_msg = _build_prompt(req, result)
 
         response = client.models.generate_content(
