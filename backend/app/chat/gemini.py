@@ -42,7 +42,7 @@ def chat_with_gemini(req: CalculateRequest, messages: list[dict[str, str]], sett
     Continue a conversation using Gemini. Returns the assistant's reply as a string.
     Falls back to an offline message if Gemini is disabled or the API call fails.
     """
-    if not settings.use_gemini or not settings.gemini_api_key:
+    if not settings.use_gemini:
         return _OFFLINE_MESSAGE
 
     try:
