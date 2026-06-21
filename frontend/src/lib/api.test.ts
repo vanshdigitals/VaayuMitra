@@ -1,5 +1,6 @@
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { calculateFootprint, getInsights, healthCheck, saveEntry, listEntries } from './api';
-import type { CalculateRequest } from './types';
+import type { CalculateRequest, CalculateResponse } from './types';
 
 const MOCK_PROFILE: CalculateRequest = {
   city: 'Mumbai',
@@ -12,9 +13,22 @@ const MOCK_PROFILE: CalculateRequest = {
   diet_type: 'veg',
 };
 
+const MOCK_RESULT: CalculateResponse = {
+  annual_total_tco2e: 1.5,
+  annual_total_kgco2e: 1500,
+  breakdown: { electricity_kg: 1000, lpg_kg: 300, transport_kg: 150, diet_kg: 50 },
+  india_average_t: 1.84,
+  paris_target_t: 2.5,
+  is_below_paris_target: true,
+  score_level: 'good',
+};
+
 describe('API Helpers', () => {
+  let mockFetch: ReturnType<typeof vi.fn>;
+
   beforeEach(() => {
-    global.fetch = vi.fn();
+    mockFetch = vi.fn();
+    global.fetch = mockFetch;
   });
 
   afterEach(() => {
@@ -23,10 +37,7 @@ describe('API Helpers', () => {
 
   it('healthCheck calls /api/health', async () => {
     const mockResponse = { status: 'ok', version: '1.0.0' };
-    (global.fetch as any).mockResolvedValue({
-      ok: true,
-      json: async () => mockResponse,
-    });
+    mockFetch.mockResolvedValue({ ok: true, json: async () => mockResponse });
 
     const result = await healthCheck();
     expect(global.fetch).toHaveBeenCalledWith('/api/health');
@@ -35,10 +46,7 @@ describe('API Helpers', () => {
 
   it('calculateFootprint posts typed payload correctly', async () => {
     const mockResponse = { annual_total_tco2e: 1.5 };
-    (global.fetch as any).mockResolvedValue({
-      ok: true,
-      json: async () => mockResponse,
-    });
+    mockFetch.mockResolvedValue({ ok: true, json: async () => mockResponse });
 
     const result = await calculateFootprint(MOCK_PROFILE);
     expect(global.fetch).toHaveBeenCalledWith('/api/calculate', {
@@ -50,33 +58,24 @@ describe('API Helpers', () => {
   });
 
   it('throws on non-2xx status', async () => {
-    (global.fetch as any).mockResolvedValue({ ok: false, status: 500 });
+    mockFetch.mockResolvedValue({ ok: false, status: 500 });
     await expect(getInsights(MOCK_PROFILE)).rejects.toThrow('500');
   });
 
   it('saveEntry posts entry correctly', async () => {
     const mockEntry = { id: 'abc123', device_id: 'vm-test' };
-    (global.fetch as any).mockResolvedValue({
-      ok: true,
-      json: async () => mockEntry,
-    });
+    mockFetch.mockResolvedValue({ ok: true, json: async () => mockEntry });
 
-    await saveEntry({
-      device_id: 'vm-test',
-      profile: MOCK_PROFILE,
-      result: { annual_total_tco2e: 1.5 } as any,
-    });
+    await saveEntry({ device_id: 'vm-test', profile: MOCK_PROFILE, result: MOCK_RESULT });
 
-    expect(global.fetch).toHaveBeenCalledWith('/api/entries', expect.objectContaining({
-      method: 'POST',
-    }));
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/entries',
+      expect.objectContaining({ method: 'POST' }),
+    );
   });
 
   it('listEntries calls correct URL with encoded device id', async () => {
-    (global.fetch as any).mockResolvedValue({
-      ok: true,
-      json: async () => [],
-    });
+    mockFetch.mockResolvedValue({ ok: true, json: async () => [] });
 
     await listEntries('vm-device-001');
     expect(global.fetch).toHaveBeenCalledWith('/api/entries/vm-device-001');

@@ -5,8 +5,6 @@ import { sendChat } from '@/lib/api';
 import { NavTabBar, AppHeader } from '@/components/ui/Navigation';
 import { Bot, User, Send, Leaf } from 'lucide-react';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
-
 interface Message {
   role: 'user' | 'model';
   content: string;
